@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ejercicio 3</title>
+</head>
+
+<body onload="init()">
+    <canvas id="myCanvas" width="640" height="480"></canvas>
+</body>
+
+<script>
+    function init() {
+        // Get canvas object from the DOM
+        var canvas = document.getElementById("myCanvas");
+
+        // Get the rendering context for WebGL
+        var gl = canvas.getContext("webgl");
+        if (!gl) {
+            console.log("Failed to get the rendering context for WebGL");
+            return;
+        }
+        // Set clear color
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        
+        // Clear canvas
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        // Get canvas object from the DOM
+        var canvas = document.getElementById("myCanvas");
+
+        // Init WebGL context
+        var gl = canvas.getContext("webgl");
+
+        // Register event handler
+        canvas.onmousedown = function(ev) {
+            click(ev, gl, canvas);
+        };
+
+        function click(ev, gl, canvas) {
+            // Coordinates of canvas origin
+            var rect = ev.target.getBoundingClientRect();
+
+            // relative x coordinate of click in canvas
+            var clickX = ev.clientX - rect.left;
+
+            // relative y coordinate of click in canvas
+            var clickY = ev.clientY - rect.top;
+            
+            // WebGL coordinates (3D)
+            var halfCanvasWidth = canvas.width / 2;
+            var halfCanvasHeight = canvas.height / 2;
+            var x = (clickX - halfCanvasWidth) / halfCanvasWidth;
+            var y = (halfCanvasHeight - clickY) / halfCanvasHeight;
+            var xyz = [x, y, 0];
+            // ...
+        }
+    }
+</script>
+
+</html>
