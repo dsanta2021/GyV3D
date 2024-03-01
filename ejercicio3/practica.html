@@ -17,7 +17,7 @@
 
 <script id="fragmentShader", type="x-shader/x-fragment">
     void main() {
-        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0)
+        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
     }
 </script>
 
@@ -77,7 +77,7 @@
             var shader = gl.createShader(type);
             gl.shaderSource(shader, src);
             gl.compileShader(shader);
-            if (!gl.getShaderParameter(shader, gl.COMPILE_ESTATUS)) {
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
                 alert("Error compiling shader: " + gl.getShaderInfoLog(shader));
                 return;
             }
@@ -103,14 +103,14 @@
             // ...
         }
         
-        
-        if (!initShader(gl, vertex, fragment)) {
+
+        if (!initShader(gl, vertexShader, fragmentShader)) {
             console.log("Failed to initialize shaders");
             return;
         }
 
         // Draw
-        gl.drawArray(gl.POINTS, 0, 1)
+        gl.drawArrays(gl.POINTS, 0, 1)
     }
 </script> 
 
