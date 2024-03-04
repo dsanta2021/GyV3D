@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Ejercicio 3</title>
 </head>
@@ -12,10 +13,11 @@
     attribute vec4 a_Position;
     void main() {
         gl_Position = a_Position;
+        gl_PointSize = 5.0;
     }
 </script>
 
-<script id="fragmentShader", type="x-shader/x-fragment">
+<script id="fragmentShader" , type="x-shader/x-fragment">
     void main() {
         gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
     }
@@ -35,12 +37,12 @@
 
         // Set clear color
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        
+
         // Clear canvas
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         // Register event handler
-        canvas.onmousedown = function(ev) {
+        canvas.onmousedown = function (ev) {
             click(ev, gl, canvas);
         };
 
@@ -48,7 +50,7 @@
         // Introducing Shaders in HTML
         var vertexShader = document.getElementById("vertexShader").innerHTML;
         var fragmentShader = document.getElementById("fragmentShader").innerHTML;
-        
+
 
         function initShader(gl, vertex, fragment) {
             var vertexShader = makeShader(gl, vertex, gl.VERTEX_SHADER);
@@ -93,7 +95,7 @@
 
             // relative y coordinate of click in canvas
             var clickY = ev.clientY - rect.top;
-            
+
             // WebGL coordinates (3D)
             var halfCanvasWidth = canvas.width / 2;
             var halfCanvasHeight = canvas.height / 2;
@@ -131,7 +133,7 @@
             // Return number of vertices
             return vertices.length / dim;
         }
-        
+
 
         if (!initShader(gl, vertexShader, fragmentShader)) {
             console.log("Failed to initialize shaders");
@@ -146,8 +148,8 @@
         }
 
         // Draw
-        gl.drawArrays(gl.TRIANGLES, 0, n)
+        gl.drawArrays(gl.POINTS, 0, n)
     }
-</script> 
+</script>
 
 </html>
