@@ -31,10 +31,10 @@
         var points = [];
         console.log(points);
         var colors = [
-            [1.0, 0.0, 0.0, 1.0], // Red
             [0.0, 1.0, 0.0, 1.0], // Green
-            [0.0, 0.0, 1.0, 1.0]  // Blue
-        ];
+            [0.0, 0.0, 1.0, 1.0],  // Blue
+            [1.0, 0.0, 0.0, 1.0] // Red             This order for draw the triangles
+        ]
 
         function init() {
             // Get canvas object from the DOM
@@ -46,7 +46,7 @@
                 console.log("Failed to get the rendering context for WebGL");
                 return;
             }
-            
+
             // Shaders
             var vertexShader = document.getElementById("vertexShader").innerHTML;
             var fragmentShader = document.getElementById("fragmentShader").innerHTML;
@@ -91,10 +91,10 @@
             gl.clear(gl.COLOR_BUFFER_BIT);      // For the white problem
 
             // Draw a point
-            for(var i=0; i<points.length; i++) {
+            for (var i = 0; i < points.length; i++) {
                 var a_Position = gl.getAttribLocation(gl.program, "a_Position");
 
-                    // Array values
+                // Array values
                 gl.vertexAttrib3fv(a_Position, points[i]);
 
                 var u_FragColor = gl.getUniformLocation(gl.program, 'u_FragColor');
@@ -103,36 +103,32 @@
                     return -1;
                 }
 
-                gl.uniform4fv(u_FragColor, colors[i%3]);      // Colors problem --> Solucionado con modulo
+                gl.uniform4fv(u_FragColor, colors[i % 3]);      // Colors problem --> Solucionado con modulo
 
                 console.log(points[i]);
 
-                    // Draw
-                if (points.length<3) {
+                // Draw
+                if (points.length < 3) {
                     gl.drawArrays(gl.POINTS, 0, 1);
-                } 
-                else if (points.length==3) {
-                    //gl.drawArrays(gl.POINTS, 0, 1);
-                    //gl.clear(gl.COLOR_BUFFER_BIT); 
-                    //i = i + 1;
-                    gl.uniform4fv(u_FragColor, colors[i%3]); 
+                }
+                else if (points.length == 3) {
                     let n = drawTriangles(gl, new Float32Array(points[0].concat(points[1], points[2])));
                     console.log(points[0].concat(points[1], points[2]));
                     gl.drawArrays(gl.TRIANGLES, 0, n);
                 }
-                else if (points.length>3) {
-                    let n = drawTriangles(gl, new Float32Array(points[i].concat(points[i-1], points[i-2])));
+                else if (points.length > 3) {
+                    let n = drawTriangles(gl, new Float32Array(points[i].concat(points[i - 1], points[i - 2])));
                     gl.drawArrays(gl.TRIANGLES, 0, n);
-                } 
-                    
+                }
+
             }
-                
+
         }
 
         function drawTriangles(gl, coordinate) {        // Needs coordinate = new Float32Array
             // Vertices
             var dim = 3;
-            var vertices = coordinate;
+            var vert = coordinate;
 
             // Create a buffer object
             var vertexBuffer = gl.createBuffer();
@@ -141,9 +137,9 @@
                 return -1;
             }
             gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-            // Assign the vertices in buffer object to a_Position variable
+            gl.bufferData(gl.ARRAY_BUFFER, vert, gl.STATIC_DRAW);
 
+            // Assign the vertices in buffer object to a_Position variable
             var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
             if (a_Position < 0) {
                 console.log('Failed to get the storage location of a_Position');
@@ -151,8 +147,9 @@
             }
             gl.vertexAttribPointer(a_Position, dim, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(a_Position);
+            
             // Return number of vertices
-            return vertices.length / dim;
+            return vert.length / dim;
         }
 
         function initShaders(gl, vs_source, fs_source) {
