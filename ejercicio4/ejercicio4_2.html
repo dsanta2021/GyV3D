@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGL Triangle Application</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/3.4.2/gl-matrix-min.js"></script>
+    <style>
+        canvas {
+            border: 1px solid #0004ff;
+        }
+    </style>
+
+</head>
+
+<body onload="init()">
+    <canvas id="myCanvas" width="640" height="480"></canvas>
+    <br>
+    Step: <input type="text" value="0.01" id="step">
+
+    <script id="vertexShader" type="x-shader/x-vertex">
+        attribute vec4 a_Position;
+        uniform mat4 u_Matrix;
+        void main() {
+            gl_Position = u_Matrix * a_Position;
+        }
+    </script>
+
+    <script id="fragmentShader" type="x-shader/x-fragment">
+        precision mediump float;
+        uniform vec4 u_FragColor;
+        void main() {
+            gl_FragColor = u_FragColor;
+        }
+    </script>
+
+    <script>
+        function init() {
+            var rad_ang = 0.0;
+            // Get canvas object from the DOM
+            var canvas = document.getElementById("myCanvas");
+
+            // Get the rendering context for WebGL
+            gl = canvas.getContext("webgl");
+            if (!gl) {
+                console.log("Failed to get the rendering context for WebGL");
+                return;
+            }
+
+            // Shaders
+            var vertexShader = document.getElementById("vertexShader").innerHTML;
+            var fragmentShader = document.getElementById("fragmentShader").innerHTML;
+
+            if (!initShaders(gl, vertexShader, fragmentShader)) {
+                console.log('Failed to intialize shaders.');
+                return;
+            }
+
+            // Set clear color
+            gl.clearColor(0.0, 0.0, 1.0, 1.0);
+
+            // Clear canvas
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            // Draw yellow triangle as the roof
+            drawTriangle(0.0, 0.5, -0.7, 0.0, 0.7, 0.0, [1.0, 1.0, 0.0, 1.0]);
+
+            // Draw yellow rectangle as the left column
+            drawRectangle(-0.5, -0.7, 0.25, 0.7, [1.0, 1.0, 0.0, 1.0]);
+
+            // Draw yellow rectangle as the right column
+            drawRectangle(0.25, -0.7, 0.25, 0.7, [1.0, 1.0, 0.0, 1.0]);
+
+            // Register event handler
+            document.onkeydown = function (ev) {
+                var step = new Number(document.getElementById("step").value);
+                switch (ev.key) {
+                    case "ArrowLeft": // Left
+                        // ...
+                        break;
+                    case "ArrowRight": // Right
+                        // ...
+                        break;
+                    case "ArrowUp": // Up
+                        // ...
+                        break;
+                    case "ArrowDown": // Down
+                        // ...
+                        break;
+                    case "PageUp": // PageUp
+                        // ...
+                        break;
+                    case "PageDown": // PageDown
+                        // ...
+                        break;
+                    case "w": // w
+                        // ...
+                        break
+                    case "a": // a
+                        // ...
+                        break;
+                    case "s": // s
+                        // ...
+                        break;
+                    case "d": // d
+                        // ...
+                        break;
+                    case "z": // z
+                        // ...
+                        break
+                    case "x": // x
+                        // ...
+                        break
+                    case "c": // c
+                        // ...
+                        break
+                }
+                // ...
+            };
+        }
+
+        function drawTriangle(x1, y1, x2, y2, x3, y3, color) {
+            // Vertices
+            var dim = 2;
+            var vert = new Float32Array([
+                x1, y1,   // Vertice #1
+                x2, y2,  // Vertice #2
+                x3, y3 // Vertice #3
+            ]);
+
+            // Create a buffer object
+            var vertexBuffer = gl.createBuffer();
+            if (!vertexBuffer) {
+                console.log('Failed to create the buffer object');
+                return -1;
+            }
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vert, gl.STATIC_DRAW);
+
+            // Assign the vertices in buffer object to a_Position variable
+            var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
+            if (a_Position < 0) {
+                console.log('Failed to get the storage location of a_Position');
+                return -1;
+            }
+            gl.vertexAttribPointer(a_Position, dim, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(a_Position);
+
+            var u_FragColor = gl.getUniformLocation(gl.program, 'u_FragColor');
+            gl.uniform4f(u_FragColor, color[0], color[1], color[2], color[3]);
+
+            gl.drawArrays(gl.TRIANGLES, 0, 3);
+        }
+
+        function drawRectangle(x, y, width, height, color) {
+            var vertices = new Float32Array([
+                x, y,
+                x, y + height,
+                x + width, y,
+                x + width, y + height
+            ]);
+
+            var vertexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+            var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
+            gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(a_Position);
+
+            var u_FragColor = gl.getUniformLocation(gl.program, 'u_FragColor');
+            gl.uniform4f(u_FragColor, color[0], color[1], color[2], color[3]);
+
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        }
+
+        function drawScene(gl, rad_ang) {
+            // Clear canvas
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            // Calculate position
+            var position = Math.sin(rad_ang);
+            var matrix = glMatrix.mat4.fromTranslation(glMatrix.mat4.create(), [position, 0.0, 0.0]);
+            
+            // Set uniform value (u_Matrix) in vertex shader
+            var mvMatrixUniform = gl.getUniformLocation(gl.program, "u_Matrix");
+            gl.uniformMatrix4fv(mvMatrixUniform, false, matrix);
+
+            // Draw
+            gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+            // Increase angle
+            rad_ang += 0.01;
+            
+            // Call drawScene again in the next browser repaint
+            requestAnimationFrame(function () {
+                drawScene(gl, rad_ang)
+            });
+        }
+
+        function initShaders(gl, vs_source, fs_source) {
+            // Compile shaders
+            var vertexShader = makeShader(gl, vs_source, gl.VERTEX_SHADER);
+            var fragmentShader = makeShader(gl, fs_source, gl.FRAGMENT_SHADER);
+
+            // Create program
+            var glProgram = gl.createProgram();
+
+            // Attach and link shaders to the program
+            gl.attachShader(glProgram, vertexShader);
+            gl.attachShader(glProgram, fragmentShader);
+            gl.linkProgram(glProgram);
+            if (!gl.getProgramParameter(glProgram, gl.LINK_STATUS)) {
+                alert("Unable to initialize the shader program");
+                return false;
+            }
+
+            // Use program
+            gl.useProgram(glProgram);
+            gl.program = glProgram;
+
+            return true;
+        }
+
+        function makeShader(gl, src, type) {
+            var shader = gl.createShader(type);
+            gl.shaderSource(shader, src);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                alert("Error compiling shader: " + gl.getShaderInfoLog(shader));
+                return;
+            }
+            return shader;
+        }
+
+    </script>
+</body>
+
+</html>
