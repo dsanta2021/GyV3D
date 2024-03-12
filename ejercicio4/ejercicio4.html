@@ -30,7 +30,7 @@
         precision mediump float;
         uniform vec4 u_FragColor;
         void main() {
-            gl_FragColor = u_FragColor;
+            gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
         }
     </script>
 
@@ -61,14 +61,14 @@
             // Clear canvas
             gl.clear(gl.COLOR_BUFFER_BIT);
 
-            // Draw yellow triangle as the roof
-            drawTriangle(0.0, 0.5, -0.7, 0.0, 0.7, 0.0, [1.0, 1.0, 0.0, 1.0]);
+            // Draw triangle as the roof
+            drawTriangle(0.0, 0.5, -0.7, 0.0, 0.7, 0.0);
 
-            // Draw yellow rectangle as the left column
-            drawRectangle(-0.5, -0.7, 0.25, 0.7, [1.0, 1.0, 0.0, 1.0]);
+            // Draw rectangle as the left column
+            drawRectangle(-0.5, -0.7, 0.25, 0.7);
 
-            // Draw yellow rectangle as the right column
-            drawRectangle(0.25, -0.7, 0.25, 0.7, [1.0, 1.0, 0.0, 1.0]);
+            // Draw rectangle as the right column
+            drawRectangle(0.25, -0.7, 0.25, 0.7);
 
             // Register event handler
             document.onkeydown = function (ev) {
@@ -118,7 +118,7 @@
             };
         }
 
-        function drawTriangle(x1, y1, x2, y2, x3, y3, color) {       
+        function drawTriangle(x1, y1, x2, y2, x3, y3) {       
             // Vertices
             var dim = 2;
             var vert = new Float32Array([
@@ -145,13 +145,10 @@
             gl.vertexAttribPointer(a_Position, dim, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(a_Position);
 
-            var u_FragColor = gl.getUniformLocation(gl.program, 'u_FragColor');
-            gl.uniform4f(u_FragColor, color[0], color[1], color[2], color[3]); 
-
             gl.drawArrays(gl.TRIANGLES, 0, 3);
         }
 
-        function drawRectangle(x, y, width, height, color) {
+        function drawRectangle(x, y, width, height) {
             var vertices = new Float32Array([
                 x, y,
                 x, y + height,
@@ -166,9 +163,6 @@
             var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
             gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(a_Position);
-
-            var u_FragColor = gl.getUniformLocation(gl.program, 'u_FragColor');
-            gl.uniform4f(u_FragColor, color[0], color[1], color[2], color[3]);
 
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         }
@@ -213,3 +207,41 @@
 </body>
 
 </html>
+
+
+
+
+
+function scaleScene(gl, rad_ang, step) {
+    // Clear canvas
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    // Calculate position
+    var scale = rad_ang;
+
+    // Obtén la matriz de transformación actual (puede ser la identidad al principio)
+    var currentMatrix = gl.getUniform(gl.program, "u_Matrix");
+
+    // Crea la matriz de escala
+    var scaleMatrix = glMatrix.mat4.fromScaling(glMatrix.mat4.create(), [scale, scale, 1.0]);
+
+    // Multiplica la matriz actual por la matriz de escala
+    var matrix = glMatrix.mat4.create();
+    glMatrix.mat4.multiply(matrix, currentMatrix, scaleMatrix);
+
+    // Set uniform value (u_Matrix) in vertex shader
+    var mvMatrixUniform = gl.getUniformLocation(gl.program, "u_Matrix");
+    gl.uniformMatrix4fv(mvMatrixUniform, false, matrix);
+
+    // Draw
+    gl.drawArrays(gl.TRIANGLES, 0, 15);
+
+    // Increase angle 
+    rad_ang += step;
+
+    // Call scaleScene again in the next browser repaint
+    requestAnimationFrame(function () {
+        scaleScene(gl, rad_ang, step)
+    });
+}
+

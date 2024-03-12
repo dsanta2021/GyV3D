@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGL Transformation Application</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/3.4.2/gl-matrix-min.js"></script>
+    <style>
+        canvas {
+            border: 1px solid #0004ff;
+        }
+    </style>
+
+</head>
+
+<body onload="init()">
+    <canvas id="myCanvas" width="640" height="480"></canvas>
+    <br>
+    Step: <input type="text" value="0.01" id="step">
+
+    <script id="vertexShader" type="x-shader/x-vertex">
+        attribute vec4 a_Position;
+        uniform mat4 u_Matrix;
+        void main() {
+            gl_Position = u_Matrix * a_Position;
+        }
+    </script>
+
+    <script id="fragmentShader" type="x-shader/x-fragment">
+        precision mediump float;
+        uniform vec4 u_FragColor;
+        void main() {
+            gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
+        }
+    </script>
+
+    <script>
+        var stepValue = 0.01;
+
+        function init() {
+            
+            // Get canvas object from the DOM
+            var canvas = document.getElementById("myCanvas");
+
+            // Get the rendering context for WebGL
+            gl = canvas.getContext("webgl");
+            if (!gl) {
+                console.log("Failed to get the rendering context for WebGL");
+                return;
+            }
+
+            // Shaders
+            var vertexShader = document.getElementById("vertexShader").innerHTML;
+            var fragmentShader = document.getElementById("fragmentShader").innerHTML;
+
+            if (!initShaders(gl, vertexShader, fragmentShader)) {
+                console.log('Failed to intialize shaders.');
+                return;
+            }
+
+            // Set clear color
+            gl.clearColor(0.0, 0.0, 1.0, 1.0);
+
+            // Clear canvas
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            // Draw yellow triangle as the roof
+            drawTriangle(0.0, 0.5, -0.7, 0.0, 0.7, 0.0);
+
+            // Draw yellow rectangle as the left column
+            drawRectangle(-0.5, -0.7, 0.25, 0.7);
+
+            // Draw yellow rectangle as the right column
+            drawRectangle(0.25, -0.7, 0.25, 0.7);
+
+            // Write the positions of vertices to a vertex shader
+            initVertexBuffers(gl);
+
+            // Draw Scene
+            drawScene(gl);
+
+            // Register event handler
+            document.onkeydown = function (ev) {
+                stepValue = parseFloat(document.getElementById("step").value);
+
+                handleKeyPress(ev);
+
+                // Draw Scene
+                drawScene(gl);
+            };
+        }
+
+        function handleKeyPress(ev) {
+            switch (ev.key) {
+                case "ArrowLeft": translateScene(-stepValue, 0.0); break;
+                case "ArrowRight": translateScene(stepValue, 0.0); break;
+                case "ArrowUp": translateScene(0.0, stepValue); break;
+                case "ArrowDown": translateScene(0.0, -stepValue); break;
+                case "PageUp": scaleScene(1 + stepValue); break;
+                case "PageDown": scaleScene(1 - stepValue); break;
+                case "w": translateTejado(0.0, stepValue); break;
+                case "a": translateTejado(-stepValue, 0.0); break;
+                case "s": translateTejado(0.0, -stepValue); break;
+                case "d": translateTejado(stepValue, 0.0); break;
+                case "z": rotateTejado(stepValue); break;
+                case "x": rotateColumn(-stepValue); break;
+                case "c": rotateColumn(stepValue); break;
+           
+                // Draw Scene
+                drawScene(gl);
+            };
+        }
+
+        // Add these new functions
+        function initVertexBuffers(gl) {
+            // Vertices for the tejado and columns
+            var vertices = new Float32Array([
+                // Vertices for the tejado
+                0.0, 0.5,
+                -0.7, 0.0,
+                0.7, 0.0,
+
+                // Vertices for the columns
+                -0.5, -0.7,
+                -0.5, 0.0,
+                0.25, -0.7,
+                0.25, 0.0,
+            ]);
+
+            // Create a buffer object
+            var vertexBuffer = gl.createBuffer();
+            if (!vertexBuffer) {
+                console.log('Failed to create the buffer object');
+                return -1;
+            }
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+            // Assign the vertices in buffer object to a_Position variable
+            var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
+            if (a_Position < 0) {
+                console.log('Failed to get the storage location of a_Position');
+                return -1;
+            }
+            gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(a_Position);
+        }
+
+        function drawScene(gl) {
+            // Clear canvas
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            // Draw yellow triangle as the tejado
+            drawTriangle(0.0, 0.5, -0.7, 0.0, 0.7, 0.0);
+
+            // Draw yellow rectangle as the left column
+            drawRectangle(-0.5, -0.7, 0.25, 0.7);
+
+            // Draw yellow rectangle as the right column
+            drawRectangle(0.25, -0.7, 0.25, 0.7);
+
+            // Write the positions of vertices to a vertex shader
+            initVertexBuffers(gl);
+
+            // Draw the entire scene with the current transformations
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+        }
+
+
+
+        function translateScene(dx, dy) {
+            // Translate the whole scene
+            var matrix = glMatrix.mat4.fromTranslation(glMatrix.mat4.create(), [dx, dy, 0.0]);
+            applyTransformation(matrix);
+        }
+
+        function scaleScene(factor) {
+            // Scale the whole scene
+            var matrix = glMatrix.mat4.fromScaling(glMatrix.mat4.create(), [factor, factor, 1.0]);
+            applyTransformation(matrix);
+        }
+
+        function translateTejado(dx, dy) {
+            // Translate only the tejado
+            var matrix = glMatrix.mat4.fromTranslation(glMatrix.mat4.create(), [dx, dy, 0.0]);
+            applyTransformation(matrix, true);
+        }
+
+        function rotateTejado(angle) {
+            // Rotate only the tejado around the Y axis
+            var matrix = glMatrix.mat4.fromRotation(glMatrix.mat4.create(), angle, [0, 1, 0]);
+            applyTransformation(matrix, true);
+        }
+
+        function rotateColumn(angle) {
+            // Rotate only the columns around the Z axis
+            var matrix = glMatrix.mat4.fromRotation(glMatrix.mat4.create(), angle, [0, 0, 1]);
+            applyTransformation(matrix, false, true);
+        }
+
+        function applyTransformation(matrix, applyTejado = false, applyColumns = false) {
+            // Apply the transformation to the appropriate parts of the scene
+            var tejadoIndices = [0, 1, 2]; // Assuming vertices for the tejado are the first 3 in the buffer
+            var columnIndices = [3, 4, 5, 6, 7, 8]; // Assuming vertices for the columns are the next 6 in the buffer
+
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            if (applyTejado) {
+                for (var i = 0; i < tejadoIndices.length; i++) {
+                    applyMatrixToVertex(tejadoIndices[i], matrix);
+                }
+            }
+
+            if (applyColumns) {
+                for (var i = 0; i < columnIndices.length; i++) {
+                    applyMatrixToVertex(columnIndices[i], matrix);
+                }
+            }
+
+            drawScene(gl);
+        }
+
+        function applyMatrixToVertex(index, matrix) {
+            // Apply the transformation matrix to a specific vertex in the buffer
+            var vertices = new Float32Array(gl.getBufferParameter(gl.ARRAY_BUFFER, gl.BUFFER_SIZE) / 4);
+            var vertex = glMatrix.vec4.fromValues(vertices[index * 2], vertices[index * 2 + 1], 0.0, 1.0);
+            var transformedVertex = glMatrix.vec4.transformMat4(glMatrix.vec4.create(), vertex, matrix);
+            vertices[index * 2] = transformedVertex[0];
+            vertices[index * 2 + 1] = transformedVertex[1];
+        }
+
+    </script>
+</body>
+
+</html>
