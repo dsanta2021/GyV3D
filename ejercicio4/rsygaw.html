@@ -21,7 +21,7 @@
     void main() {
         gl_Position = u_Matrix * a_Position;
     }
-    </script>
+</script>
 
 <script id="fragmentShader" type="x-shader/x-fragment">
     precision mediump float;
@@ -32,7 +32,7 @@
 </script>
 
 <script>
-    var initPoints = [
+    var allPoints = [
         0.0, 0.5, 0.0,  // Tejado Top
         -0.7, 0.0, 0.0, // Tejado Left
         0.7, 0.0, 0.0,   // Tejado Right
@@ -54,10 +54,39 @@
         0.2, -0.7, 0.0  // Columna Right 2 Bottom
     ]
 
+    var verRoof = [
+        0.0, 0.5, 0.0,  // Tejado Top
+        -0.7, 0.0, 0.0, // Tejado Left
+        0.7, 0.0, 0.0   // Tejado Right
+    ]
+
+    var verColL = [
+        -0.2, 0.0, 0.0,  // Columna Left 1 Top
+        -0.5, -0.7, 0.0,   // Columna Left 1 BottomLeft
+        -0.2, -0.7, 0.0,  // Columna Left 1 BottomRight
+
+        -0.5, 0.0, 0.0,  // Columna Left 2 TopLeft
+        -0.2, 0.0, 0.0,   // Columna Left 2 TopRight
+        -0.5, -0.7, 0.0  // Columna Left 2 Bottom
+    ]
+
+    var verColR = [
+        0.5, 0.0, 0.0,   // Columna Right 1 Top
+        0.2, -0.7, 0.0,   // Columna Right 1 BottomLeft
+        0.5, -0.7, 0.0,  // Columna Right 1 BottomRight
+
+        0.2, 0.0, 0.0,  // Columna Right 2 TopLeft
+        0.5, 0.0, 0.0,   // Columna Right 2 TopRight
+        0.2, -0.7, 0.0  // Columna Right 2 Bottom
+    ]
+
     var rad_ang = new function() {
         this.x = 0.0;
         this.y = 0.0;
-        this.scale = 0.0;
+        this.scale = 1.0;
+        this.roofX = 0.0;
+        this.roofY = 0.0;
+        this.roofRot = 0.0;
     };
 
     function init() {
@@ -87,9 +116,9 @@
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         // Draw triangle as the roof
-        drawTriangle(gl, initPoints);
+        drawTriangle(gl, allPoints);
         //gl.drawArrays(gl.TRIANGLES, 0, 15);
-        translateScene(gl, rad_ang, 0.0);
+        drawScene(gl, rad_ang, 0.0);
 
         // Register event handler
         document.onkeydown = function (ev) {
@@ -97,48 +126,53 @@
             switch (ev.key) {
                 case "ArrowLeft": // Left
                     rad_ang.x -= step;
-                    translateScene(gl, rad_ang, step);
+                    drawScene(gl, rad_ang, step);
                     break;
                 case "ArrowRight": // Right
                     rad_ang.x += step;
-                    translateScene(gl, rad_ang, step);
+                    drawScene(gl, rad_ang, step);
                     break;
                 case "ArrowUp": // Up
                     rad_ang.y += step;
-                    translateScene(gl, rad_ang, step);
+                    drawScene(gl, rad_ang, step);
                     break;
                 case "ArrowDown": // Down
                     rad_ang.y -= step;
-                    translateScene(gl, rad_ang, step);
+                    drawScene(gl, rad_ang, step);
                     break;
                 case "PageUp": // PageUp
                     rad_ang.scale += step;
-                    scaleScene(gl, rad_ang, step);
+                    drawScene(gl, rad_ang, step);
                     break;
                 case "PageDown": // PageDown
                     rad_ang.scale -= step;
-                    scaleScene(gl, rad_ang, step);
+                    drawScene(gl, rad_ang, step);
                     break;
                 case "w": // w
-                    // ...
-                    break
+                    rad_ang.roofY += step;
+                    moveTriangle(verRoof, 0, step, 1, 0, rad_ang);
+                    break;
                 case "a": // a
-                    // ...
+                    rad_ang.roofX -= step;
+                    moveTriangle(verRoof, 0, -step, 0, 1, rad_ang);
                     break;
                 case "s": // s
-                    // ...
+                    rad_ang.roofY -= step;
+                    moveTriangle(verRoof, 0, -step, 1, 0, rad_ang);
                     break;
                 case "d": // d
-                    // ...
+                    rad_ang.roofX += step;
+                    moveTriangle(verRoof, 0, step, 0, 1, rad_ang);
                     break;
                 case "z": // z
-                    // ...
+                    rad_ang.roofRot -= step;
+                    rotateTriangle(verRoof, 0, step, 1, rad_ang);
                     break
                 case "x": // x
-                    // ...
+                    rotateTriangle(verColL, 0, -step, 2, rad_ang);
                     break
                 case "c": // c
-                    // ...
+                    rotateTriangle(verColR, 0, step, 2, rad_ang);
                     break
             }
         };
@@ -168,47 +202,28 @@
         gl.enableVertexAttribArray(a_Position);
     }
 
-    function translateScene(gl, rad_ang, step) {
+    function drawScene(gl, rad_ang, step) {
         // Clear canvas
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         // Calculate position
         var move_x = rad_ang.x;
         var move_y = rad_ang.y;
-        var movement = glMatrix.mat4.fromTranslation(glMatrix.mat4.create(), [move_x, move_y, 0.0]);
-        
-
-        // Set uniform value (u_Matrix) in vertex shader
-        var mvMatrixUniform = gl.getUniformLocation(gl.program, "u_Matrix");
-        gl.uniformMatrix4fv(mvMatrixUniform, false, movement);
-
-        // Draw
-        gl.drawArrays(gl.TRIANGLES, 0, 15);
-
-        // Call translateScene again in the next browser repaint
-        requestAnimationFrame(function () {
-            translateScene(gl, rad_ang, step)
-        });
-    }
-
-    function scaleScene(gl, rad_ang, step) {
-        // Clear canvas
-        gl.clear(gl.COLOR_BUFFER_BIT);
-
-        // Calculate position
         var scale = rad_ang.scale;
-        var matrix = glMatrix.mat4.fromScaling(glMatrix.mat4.create(), [scale, scale, 0.0]);
-
+        var moved = glMatrix.mat4.fromTranslation(glMatrix.mat4.create(), [move_x, move_y, 0.0]);
+        var scaled = glMatrix.mat4.fromScaling(glMatrix.mat4.create(), [scale, scale, 0.0]);
+        var mov_sca = glMatrix.mat4.multiply(glMatrix.mat4.create(), moved, scaled);
+        
         // Set uniform value (u_Matrix) in vertex shader
         var mvMatrixUniform = gl.getUniformLocation(gl.program, "u_Matrix");
-        gl.uniformMatrix4fv(mvMatrixUniform, false, matrix);
+        gl.uniformMatrix4fv(mvMatrixUniform, false, mov_sca);
 
         // Draw
         gl.drawArrays(gl.TRIANGLES, 0, 15);
 
-        // Call scaleScene again in the next browser repaint
+        // Call drawScene again in the next browser repaint
         requestAnimationFrame(function () {
-            scaleScene(gl, rad_ang, step)
+            drawScene(gl, rad_ang, step)
         });
     }
 
@@ -245,6 +260,27 @@
             return;
         }
         return shader;
+    }
+
+    function moveTriangle(vertices, startIdx, amount, idx1, idx2, rad_ang) {
+        for (var i = startIdx; i < vertices.length; i += 3) {
+            vertices[i + idx1] += amount;
+            vertices[i + idx2] += amount;
+        }
+        drawScene(gl, rad_ang, step);
+    }
+
+    function rotateTriangle(vertices, startIdx, amount, axisIdx, rad_ang) {
+        var rotationMatrix = glMatrix.mat4.create();
+        glMatrix.mat4.fromRotation(rotationMatrix, amount, [0, 0, axisIdx]);
+        for (var i = startIdx; i < vertices.length; i += 3) {
+            var point = [vertices[i], vertices[i + 1], vertices[i + 2]];
+            glMatrix.vec3.transformMat4(point, point, rotationMatrix);
+            vertices[i] = point[0];
+            vertices[i + 1] = point[1];
+            vertices[i + 2] = point[2];
+        }
+        drawScene(gl, rad_ang, step);
     }
 
 </script>
