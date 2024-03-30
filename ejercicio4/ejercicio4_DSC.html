@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <title>Ejercicio 4</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebGL Triangle Application</title>
@@ -58,6 +59,11 @@
         this.x = 0.0;
         this.y = 0.0;
         this.scale = 1.0;
+        this.roofX = 0.0;
+        this.roofY = 0.0;
+        this.roofRotation = 0.0;
+        this.columLRotation = 0.0;
+        this.columRRotation = 0.0;
     };
 
     function init() {
@@ -119,25 +125,32 @@
                     drawScene(gl, rad_ang, step);
                     break;
                 case "w": // w
-                    // ...
+                    rad_ang.roofY += step;
+                    drawScene(gl, rad_ang, step);
                     break
                 case "a": // a
-                    // ...
+                    rad_ang.roofX -= step;
+                    drawScene(gl, rad_ang, step);
                     break;
                 case "s": // s
-                    // ...
+                    rad_ang.roofY -= step;
+                    drawScene(gl, rad_ang, step);
                     break;
                 case "d": // d
-                    // ...
+                    rad_ang.roofX += step;
+                    drawScene(gl, rad_ang, step);
                     break;
                 case "z": // z
-                    // ...
+                    rad_ang.roofRotation += step;
+                    drawScene(gl, rad_ang, step);
                     break
                 case "x": // x
-                    // ...
+                    rad_ang.columLRotation -= step;
+                    drawScene(gl, rad_ang, step);
                     break
                 case "c": // c
-                    // ...
+                    rad_ang.columRRotation += step;
+                    drawScene(gl, rad_ang, step);
                     break
             }
         };
@@ -171,20 +184,47 @@
         // Clear canvas
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-        // Matrixs
+        // General Matrixs
         var move_x = rad_ang.x;
         var move_y = rad_ang.y;
         var scale = rad_ang.scale;
         var moved = glMatrix.mat4.fromTranslation(glMatrix.mat4.create(), [move_x, move_y, 0.0]);
         var scaled = glMatrix.mat4.fromScaling(glMatrix.mat4.create(), [scale, scale, 0.0]);
         var mov_sca = glMatrix.mat4.multiply(glMatrix.mat4.create(), moved, scaled);
-        
         // Set uniform value (u_Matrix) in vertex shader
         var mvMatrixUniform = gl.getUniformLocation(gl.program, "u_Matrix");
         gl.uniformMatrix4fv(mvMatrixUniform, false, mov_sca);
 
-        // Draw
-        gl.drawArrays(gl.TRIANGLES, 0, 15);
+        // Roof Matrix
+        var move_roof_x = rad_ang.roofX;
+        var move_roof_y = rad_ang.roofY;
+        var rotate_roof = rad_ang.roofRotation;
+        var moved_roof = glMatrix.mat4.fromTranslation(glMatrix.mat4.create(), [move_roof_x, move_roof_y, 0.0]);
+        var rotated_roof = glMatrix.mat4.fromYRotation(glMatrix.mat4.create(), rotate_roof);
+        var mov_rot_roof = glMatrix.mat4.multiply(glMatrix.mat4.create(), moved_roof, rotated_roof);
+        var roof_and_general = glMatrix.mat4.multiply(glMatrix.mat4.create(), mov_sca, mov_rot_roof);
+        // Set uniform value (u_Matrix) in vertex shader
+        var mvMatrixUniform = gl.getUniformLocation(gl.program, "u_Matrix");
+        gl.uniformMatrix4fv(mvMatrixUniform, false, roof_and_general);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);  // Los correspondientes al tejado
+
+        // Left Colum Matrix
+        var rotate_Lcolum = rad_ang.columLRotation;
+        var rotated_LColum = glMatrix.mat4.fromZRotation(glMatrix.mat4.create(), rotate_Lcolum);
+        var LColum_and_general = glMatrix.mat4.multiply(glMatrix.mat4.create(), mov_sca, rotated_LColum);
+        // Set uniform value (u_Matrix) in vertex shader
+        var mvMatrixUniform = gl.getUniformLocation(gl.program, "u_Matrix");
+        gl.uniformMatrix4fv(mvMatrixUniform, false, LColum_and_general);
+        gl.drawArrays(gl.TRIANGLES, 3, 6);  // Los correspondientes a la columna izq
+
+        // Right Colum Matrix
+        var rotate_Rcolum = rad_ang.columRRotation;
+        var rotated_RColum = glMatrix.mat4.fromZRotation(glMatrix.mat4.create(), rotate_Rcolum);
+        var RColum_and_general = glMatrix.mat4.multiply(glMatrix.mat4.create(), mov_sca, rotated_RColum);
+        // Set uniform value (u_Matrix) in vertex shader
+        var mvMatrixUniform = gl.getUniformLocation(gl.program, "u_Matrix");
+        gl.uniformMatrix4fv(mvMatrixUniform, false, RColum_and_general);
+        gl.drawArrays(gl.TRIANGLES, 9, 6);  // Los correspondientes a la columna derecha
         
         // Call translateScene again in the next browser repaint
         requestAnimationFrame(function () {
