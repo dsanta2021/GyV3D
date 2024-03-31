@@ -3,10 +3,7 @@
 
 <head>
     <title>Ejercicio 5</title>
-    <meta name="author" content="Jose Miguel Guerrero Hernandez">
-    <meta name="email" content="josemiguel.guerrero@urjc.es">
-    <!-- Copyright (c) 2023 Jose Miguel Guerrero Hernandez <josemiguel.guerrero@urjc.es> -->
-    <!-- License: Creative Commons Attribution-ShareAlike 4.0 International-->
+    <meta name="author" content="David Santa Cruz">
 </head>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/3.4.2/gl-matrix-min.js"></script>
@@ -34,14 +31,8 @@
 <script>
     function init() {
         // Variables
-        var rad_ang = new function() {
-            this.value = 0.0;
-            this.rotationChecked = document.querySelector('input[name="rotation"]:checked'); 
-            this.primitiveValue = document.querySelector('input[name="primitive"]:checked').value; 
-            this.projectionValue = document.querySelector('input[name="projection"]:checked').value; 
-            this.speed = document.getElementById("speed").value;
-        };
-
+        var rad_ang = 0.0;
+        var z = 3;
 
         // Get canvas object from the DOM
         var canvas = document.getElementById("myCanvas");
@@ -65,7 +56,7 @@
         initVertexBuffers(gl);
 
         // Init projection matrix
-        initProjection(gl, canvas, rad_ang);
+        initProjection(gl, canvas, z);
 
         // Set clear canvas color
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -74,23 +65,37 @@
         gl.enable(gl.DEPTH_TEST);
 
         // Draw Scene
-        drawScene(gl, rad_ang);
+        drawScene(gl, rad_ang, canvas, z);
+
+        // Event listener for mouse wheel
+        //document.addEventListener('wheel', function (event) {
+        //z = 3;  // por defecto
+        //z = event.wheelDelta > 0 ? z - 1 : z + 1;
+
+        // drawScene(gl, rad_ang, canvas, z);
+        //});
     }
 
-    function drawScene(gl, rad_ang) {
+    function drawScene(gl, rad_ang, canvas, z) {
         // Clear
         gl.clear(gl.COLOR_BUFFER_BIT);
+        initProjection(gl, canvas, z)
+
+        var rotationChecked = document.querySelector('input[name="rotation"]:checked');
+        var primitiveValue = document.querySelector('input[name="primitive"]:checked').value;
+        //var projectionValue = document.querySelector('input[name="projection"]:checked').value;
+        var speed = document.getElementById("speed").value;
 
         var checked = 0;
         var triOrLines = "";
-        if (rad_ang.rotationChecked != null) {
+        if (rotationChecked != null) {
             checked = 1;
         }
         else {
             checked = 0;
         }
 
-        if (rad_ang.primitiveValue === 'triangles') {
+        if (primitiveValue === 'triangles') {
             triOrLines = gl.TRIANGLES;
         }
         else {
@@ -98,23 +103,20 @@
         }
 
         // Rotate Y const
-        var mvMatrix = glMatrix.mat4.fromYRotation(glMatrix.mat4.create(), rad_ang.value, [0.5, 0.5, 0.5]);
+        var mvMatrix = glMatrix.mat4.fromYRotation(glMatrix.mat4.create(), rad_ang, [0.5, 0.5, 0.5]);
         var uMvMatrix = gl.getUniformLocation(gl.program, "u_mvMatrix");
         gl.uniformMatrix4fv(uMvMatrix, false, mvMatrix);
-        console.log(rad_ang.speed);
-        console.log(rad_ang.rotationChecked);
-        console.log(rad_ang.primitiveValue);
 
         // Draw
-        //var draw = rad_ang. 
         gl.drawElements(triOrLines, 26 * 3, gl.UNSIGNED_SHORT, 0);       // 26*3 = número de índices
 
         // Increase angle
-        rad_ang.value += 0.01 * rad_ang.speed * checked;
+        rad_ang += 0.01 * speed * checked;
 
         // Call drawScene again in the next browser repaint
         requestAnimationFrame(function () {
-            drawScene(gl, rad_ang)
+            // initProjection(gl,canvas)
+            drawScene(gl, rad_ang, canvas, z)
         });
     }
 
@@ -126,66 +128,66 @@
         // Vertexes and colors  (X, Y, Z, R, G, B)
         var vertexesAndColors = [
             // Frontal - Red 
-            0.0, 0.5, 0.0,       1, 0, 0, // v0 
-            -0.7, 0.0, 0.5,      1, 0, 0, // v1 
-            0.7, 0.0, 0.5,       1, 0, 0, // v2 
-            -0.5, 0.0, 0.2,      1, 0, 0, // v3 
-            -0.2, 0.0, 0.2,      1, 0, 0, // v4
-            -0.5, -0.7, 0.2,     1, 0, 0, // v5
-            -0.2, -0.7, 0.2,     1, 0, 0, // v6
-            0.2, 0.0, 0.2,       1, 0, 0, // v7
-            0.5, 0.0, 0.2,       1, 0, 0, // v8
-            0.2, -0.7, 0.2,      1, 0, 0, // v9
-            0.5, -0.7, 0.2,      1, 0, 0, // v10
+            0.0, 0.5, 0.0, 1, 0, 0, // v0 
+            -0.7, 0.0, 0.5, 1, 0, 0, // v1 
+            0.7, 0.0, 0.5, 1, 0, 0, // v2 
+            -0.5, 0.0, 0.2, 1, 0, 0, // v3 
+            -0.2, 0.0, 0.2, 1, 0, 0, // v4
+            -0.5, -0.7, 0.2, 1, 0, 0, // v5
+            -0.2, -0.7, 0.2, 1, 0, 0, // v6
+            0.2, 0.0, 0.2, 1, 0, 0, // v7
+            0.5, 0.0, 0.2, 1, 0, 0, // v8
+            0.2, -0.7, 0.2, 1, 0, 0, // v9
+            0.5, -0.7, 0.2, 1, 0, 0, // v10
             // Back - Blue 
-            0.0, 0.5, 0.0,       0, 0, 1, // v11
-            -0.7, 0.0, -0.5,     0, 0, 1, // v12
-            0.7, 0.0, -0.5,      0, 0, 1, // v13
-            -0.5, -0.0, -0.2,    0, 0, 1, // v14
-            -0.2, 0.0, -0.2,     0, 0, 1, // v15
-            -0.5, -0.7, -0.2,    0, 0, 1, // v16
-            -0.2, -0.7, -0.2,    0, 0, 1, // v17
-            0.2, 0.0, -0.2,      0, 0, 1, // v18
-            0.5, 0.0, -0.2,      0, 0, 1, // v19
-            0.2, -0.7, -0.2,     0, 0, 1, // v20
-            0.5, -0.7, -0.2,     0, 0, 1, // v21
+            0.0, 0.5, 0.0, 0, 0, 1, // v11
+            -0.7, 0.0, -0.5, 0, 0, 1, // v12
+            0.7, 0.0, -0.5, 0, 0, 1, // v13
+            -0.5, -0.0, -0.2, 0, 0, 1, // v14
+            -0.2, 0.0, -0.2, 0, 0, 1, // v15
+            -0.5, -0.7, -0.2, 0, 0, 1, // v16
+            -0.2, -0.7, -0.2, 0, 0, 1, // v17
+            0.2, 0.0, -0.2, 0, 0, 1, // v18
+            0.5, 0.0, -0.2, 0, 0, 1, // v19
+            0.2, -0.7, -0.2, 0, 0, 1, // v20
+            0.5, -0.7, -0.2, 0, 0, 1, // v21
             // Left – Yellow 
-            0.0, 0.5, 0.0,       1, 1, 0, // v22
-            -0.7, 0.0, -0.5,     1, 1, 0, // v23
-            -0.7, 0.0, 0.5,      1, 1, 0, // v24
-            -0.5, 0.0, 0.2,      1, 1, 0, // v25
-            -0.2, 0.0, 0.2,      1, 1, 0, // v26
-            -0.5, -0.7, -0.2,    1, 1, 0, // v27
-            -0.5, -0.7, 0.2,     1, 1, 0, // v28
-            0.2, 0.0, -0.2,      1, 1, 0, // v29
-            0.2, 0, 0.2,         1, 1, 0, // v30
-            0.2, -0.7, -0.2,     1, 1, 0, // v31
-            0.2, -0.7, 0.2,      1, 1, 0, // v32
+            0.0, 0.5, 0.0, 1, 1, 0, // v22
+            -0.7, 0.0, -0.5, 1, 1, 0, // v23
+            -0.7, 0.0, 0.5, 1, 1, 0, // v24
+            -0.5, 0.0, 0.2, 1, 1, 0, // v25
+            -0.2, 0.0, 0.2, 1, 1, 0, // v26
+            -0.5, -0.7, -0.2, 1, 1, 0, // v27
+            -0.5, -0.7, 0.2, 1, 1, 0, // v28
+            0.2, 0.0, -0.2, 1, 1, 0, // v29
+            0.2, 0, 0.2, 1, 1, 0, // v30
+            0.2, -0.7, -0.2, 1, 1, 0, // v31
+            0.2, -0.7, 0.2, 1, 1, 0, // v32
             // Right - Green 
-            0.0, 0.5, 0.0,       0, 1, 0, // v33
-            0.7, 0.0, 0.5,       0, 1, 0, // v34
-            -0.7, 0.0, -0.5,     0, 1, 0, // v35
-            0.5, 0.0, 0.2,       0, 1, 0, // v36
-            0.5, 0.0, -0.2,      0, 1, 0, // v37
-            0.5, -0.7, 0.2,      0, 1, 0, // v38
-            0.5, -0.7, -0.2,     0, 1, 0, // v39
-            -0.2, 0.0, 0.2,      0, 1, 0, // v40
-            -0.2, 0.0, -0.2,     0, 1, 0, // v41
-            -0.2, -0.7, 0.2,     0, 1, 0, // v42
-            -0.2, -0.7, -0.2,    0, 1, 0, // v43
+            0.0, 0.5, 0.0, 0, 1, 0, // v33
+            0.7, 0.0, 0.5, 0, 1, 0, // v34
+            -0.7, 0.0, -0.5, 0, 1, 0, // v35
+            0.5, 0.0, 0.2, 0, 1, 0, // v36
+            0.5, 0.0, -0.2, 0, 1, 0, // v37
+            0.5, -0.7, 0.2, 0, 1, 0, // v38
+            0.5, -0.7, -0.2, 0, 1, 0, // v39
+            -0.2, 0.0, 0.2, 0, 1, 0, // v40
+            -0.2, 0.0, -0.2, 0, 1, 0, // v41
+            -0.2, -0.7, 0.2, 0, 1, 0, // v42
+            -0.2, -0.7, -0.2, 0, 1, 0, // v43
             // Bottom - Light Blue
-            -0.7, 0.0, 0.5,      0, 1, 1, // v44
-            0.7, 0.0, 0.5,       0, 1, 1, // v45
-            -0.7, 0.0, -0.5,     0, 1, 1, // v46
-            0.7, 0.0, -0.5,      0, 1, 1, // v47    
-            -0.5, -0.7, 0.2,     0, 1, 1, // v48
-            -0.2, -0.7, 0.2,     0, 1, 1, // v49
-            -0.5, -0.7, -0.2,    0, 1, 1, // v50
-            -0.2, -0.7, -0.2,    0, 1, 1, // v51
-            0.2, -0.7, 0.2,      0, 1, 1, // v52
-            0.5, -0.7, 0.2,      0, 1, 1, // v53
-            0.2, -0.7, -0.2,     0, 1, 1, // v54
-            0.5, -0.7, -0.2,     0, 1, 1  // v55         
+            -0.7, 0.0, 0.5, 0, 1, 1, // v44
+            0.7, 0.0, 0.5, 0, 1, 1, // v45
+            -0.7, 0.0, -0.5, 0, 1, 1, // v46
+            0.7, 0.0, -0.5, 0, 1, 1, // v47    
+            -0.5, -0.7, 0.2, 0, 1, 1, // v48
+            -0.2, -0.7, 0.2, 0, 1, 1, // v49
+            -0.5, -0.7, -0.2, 0, 1, 1, // v50
+            -0.2, -0.7, -0.2, 0, 1, 1, // v51
+            0.2, -0.7, 0.2, 0, 1, 1, // v52
+            0.5, -0.7, 0.2, 0, 1, 1, // v53
+            0.2, -0.7, -0.2, 0, 1, 1, // v54
+            0.5, -0.7, -0.2, 0, 1, 1  // v55         
         ];
 
         // Indexes (for drawing using triangles)
@@ -255,25 +257,33 @@
      * @param {WebGLRenderingContext} gl 
      * @param {HTMLCanvasElement} canvas 
      */
-    function initProjection(gl, canvas, rad_ang) {
-        // Write u_pMatrix
-        if (rad_ang.projectionValue === 'perspective') {
+    function initProjection(gl, canvas, z) {
+        var projectionValue = document.querySelector('input[name="projection"]:checked').value;
+
+        if (projectionValue === 'perspective') {
+            // Write u_pMatrix
             var pMatrixUniform = gl.getUniformLocation(gl.program, "u_pMatrix");
             var ratio = canvas.width / canvas.height;
             var pMatrix = glMatrix.mat4.perspective(glMatrix.mat4.create(), toRadian(60), ratio, 0.1, 100);
             gl.uniformMatrix4fv(pMatrixUniform, false, pMatrix);
+
+            // Write u_vMatrix
+            var vMatrixUniform = gl.getUniformLocation(gl.program, "u_vMatrix");
+            var vMatrix = glMatrix.mat4.lookAt(glMatrix.mat4.create(), [0, -0.3, z], [0, 0, 0], [0, 1, 0]);
+            gl.uniformMatrix4fv(vMatrixUniform, false, vMatrix);
         }
         else {
+            // Write u_pMatrix
             var pMatrixUniform = gl.getUniformLocation(gl.program, "u_pMatrix");
             var pMatrix = glMatrix.mat4.ortho(glMatrix.mat4.create(), -1, 1, -1, 1, 0.1, 100);
             gl.uniformMatrix4fv(pMatrixUniform, false, pMatrix);
-        }
-        
 
-        // Write u_vMatrix
-        var vMatrixUniform = gl.getUniformLocation(gl.program, "u_vMatrix");
-        var vMatrix = glMatrix.mat4.lookAt(glMatrix.mat4.create(), [0, -0.3, 3], [0, 0, 0], [0, 1, 0]);
-        gl.uniformMatrix4fv(vMatrixUniform, false, vMatrix);
+            // Write u_vMatrix
+            var vMatrixUniform = gl.getUniformLocation(gl.program, "u_vMatrix");
+            var vMatrix = glMatrix.mat4.lookAt(glMatrix.mat4.create(), [0, -0.3, 3], [0, 0, 0], [0, 1, 0]);
+            gl.uniformMatrix4fv(vMatrixUniform, false, vMatrix);
+        }
+
     }
 
     function initShaders(gl, vs_source, fs_source) {
@@ -310,6 +320,17 @@
         }
         return shader;
     }
+
+    // Event listener for mouse wheel
+    document.addEventListener('wheel', function (event) {
+        if (document.querySelector('input[name="projection"]:checked').value === 'perspective') {
+            z += event.deltaY > 0 ? -1 : 1; // Increment or decrement z based on mouse wheel direction
+            //initProjection(gl, document.getElementById("myCanvas"), z);
+            drawScene(gl, document.getElementById("myCanvas"), z);
+        }
+    });
+
+
 </script>
 
 <body onload="init()">
