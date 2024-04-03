@@ -32,16 +32,17 @@
     void main(void) {
         vec4 color0 = texture2D(u_Sampler0, v_TexCoord);
         vec4 color1 = texture2D(u_Sampler1, v_TexCoord);
-        gl_FragColor = color0 * color1;
+        gl_FragColor = (color1) * (color0);
     }
 </script>
 
 <script>
     var z = 3;  // por defecto
+    var Ycamera = 0;
+
     function init() {
         // Variables
         var rad_ang = 0.0;
-
 
         // Get canvas object from the DOM
         var canvas = document.getElementById("myCanvas");
@@ -64,31 +65,36 @@
         // Init vertex shader
         initVertexBuffers(gl);
 
-        // Init projection matrix
-        //initProjection(gl, canvas, z);
-
         // Set clear canvas color
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
-        // Hidden surface removal
-        //gl.enable(gl.DEPTH_TEST);
+        drawScene(gl, rad_ang, canvas);
 
-        // Draw Scene
-        //drawScene(gl, rad_ang, canvas);
-        initTexturesAndDraw(gl, rad_ang, canvas);
+        // Hidden surface removal
+        gl.enable(gl.DEPTH_TEST);
+
+        // Event listener for mouse wheel
+        document.addEventListener('wheel', function (event) {
+            var projectionValue = document.querySelector('input[name="projection"]:checked').value;
+            if (projectionValue === 'perspective') {
+                z = event.wheelDelta > 0 ? z - 1 : z + 1;
+            }
+
+        });
 
         // Register event handler
         document.onkeydown = function (ev) {
             var step = new Number(document.getElementById("step").value);
-            switch (ev.key) {
-                case "ArrowUp": // Up
-                    z += step;
-                    initTexturesAndDraw(gl, rad_ang, canvas);
-                    break;
-                case "ArrowDown": // Down
-                    z -= step;
-                    initTexturesAndDraw(gl, rad_ang, canvas);
-                    break;
+            var projectionValue = document.querySelector('input[name="projection"]:checked').value;
+            if (projectionValue === 'perspective') {
+                switch (ev.key) {
+                    case "ArrowUp": // Up
+                        Ycamera += step;
+                        break;
+                    case "ArrowDown": // Down
+                        Ycamera -= step;
+                        break;
+                }
             }
         };
 
@@ -97,7 +103,8 @@
     function drawScene(gl, rad_ang, canvas) {
         // Clear
         gl.clear(gl.COLOR_BUFFER_BIT);
-        initProjection(gl, canvas)
+        initProjection(gl, canvas);
+        initTextures(gl)
 
         var rotationChecked = document.querySelector('input[name="rotation"]:checked');
         var primitiveValue = document.querySelector('input[name="primitive"]:checked').value;
@@ -137,7 +144,7 @@
     }
 
     function initVertexBuffers(gl) {
-        // Vertexes and colors  (X, Y, Z, R, G, B)
+        // Vertexes and textures  (X, Y, Z, S, T)
         var vertexesAndTextures = [
             // Frontal - Cristalera y Puertas
             0.0, 0.5, 0.0, 0.75, 1.0, // v0 
@@ -258,11 +265,14 @@
 
         var vertexPositionAttribute = gl.getAttribLocation(gl.program, "a_Position");
         gl.enableVertexAttribArray(vertexPositionAttribute);
-        gl.vertexAttribPointer(vertexPositionAttribute, 2, gl.FLOAT, false, 4 * 4, 0);
+        gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 4 * (3 + 2), 0);
 
-        var vertexTextureAttribute = gl.getAttribLocation(gl.program, "a_TexCoord");
-        gl.enableVertexAttribArray(vertexTextureAttribute);
-        gl.vertexAttribPointer(vertexTextureAttribute, 2, gl.FLOAT, false, 4 * 4, 4 * 2);
+        var vertexColorAttribute = gl.getAttribLocation(gl.program, "a_TexCoord");
+        gl.enableVertexAttribArray(vertexColorAttribute);
+        gl.vertexAttribPointer(vertexColorAttribute, 2, gl.FLOAT, false, 4 * (3 + 2), 4 * 3);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indexes), gl.STATIC_DRAW);
     }
 
     function toRadian(d) {
@@ -281,7 +291,7 @@
 
             // Write u_vMatrix
             var vMatrixUniform = gl.getUniformLocation(gl.program, "u_vMatrix");
-            var vMatrix = glMatrix.mat4.lookAt(glMatrix.mat4.create(), [0, -0.3, z], [0, 0, 0], [0, 1, 0]);
+            var vMatrix = glMatrix.mat4.lookAt(glMatrix.mat4.create(), [0, Ycamera, z], [0, 0, 0], [0, 1, 0]);
             gl.uniformMatrix4fv(vMatrixUniform, false, vMatrix);
         }
         else {
@@ -297,45 +307,43 @@
 
     }
 
-    function initTexturesAndDraw(gl, rad_ang, canvas) {
+    function initTextures(gl) {
         var decorationValue = document.querySelector('input[name="christmas"]:checked').value;
-        //console.log(decorationValue);
+        var image0 = new Image();
+        image0.src = 'portal.jpg';
+        var image1 = new Image();
+        image1.src = 'light.jpg';
+        var texture0 = gl.createTexture();
+        var texture1 = gl.createTexture();
 
         if (decorationValue === 'no') {
-            var image = new Image();
-            image.src = 'portal.jpg';
-            image.onload = function () {
-                loadTexture(gl, "u_Sampler0", image, 0, true);
-                drawScene(gl, rad_ang, canvas);
+            console.log(decorationValue);
+            image0.onload = function () {
+                loadTexture(gl, "u_Sampler0", image0, 0, true, texture0);
+                loadTexture(gl, "u_Sampler1", image0, 1, true, texture0);
             };
         }
         else {
-            var image0 = new Image();
-            image0.src = 'portal.jpg';
-            var image1 = new Image();
-            image1.src = 'light.jpg';
             image0.onload = function () {
-                loadTexture(gl, "u_Sampler0", image0, 0, true);
+                loadTexture(gl, "u_Sampler0", image0, 0, true, texture0);
                 image1.onload = function () {
-                    loadTexture(gl, "u_Sampler1", image1, 1, true);
-                    drawScene(gl, rad_ang, canvas);
+                    loadTexture(gl, "u_Sampler1", image1, 1, true, texture1);
                 };
             };
         }
-
     }
 
     function isPowerOf2(value) {
         return (value & (value - 1)) == 0;
     }
 
-    function loadTexture(gl, samplerUniform, image, unitNumber, flip) {
+    function loadTexture(gl, samplerUniform, image, unitNumber, flip, texture) {
         // Flip the image's y axis
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flip);
 
         // Activate and configure texture
         gl.activeTexture(gl.TEXTURE0 + unitNumber);
-        gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+        gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
@@ -406,6 +414,8 @@
     <b>Decoration</b>
     <input type="radio" name="christmas" value="no" checked> No
     <input type="radio" name="christmas" value="yes"> Yes<br>
+    <br>
+    Step: <input type="text" value="0.01" id="step" checked> 0.01
 </body>
 
 </html>
