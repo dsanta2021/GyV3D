@@ -1,0 +1,43 @@
+<!--
+Autor: David Santa Cruz Del Moral
+Partes implementadas:
+- Funcionalidad básica.
+- Funcionalidad avanzada:
+    - Puntuación.
+    - Velocidad variable.
+    - Frecuencia de aparición de fantasmas y potenciadores.
+- Mejoras:
+    - Condición de ganar si se consiguen todas las esferas de puntuación.
+    - Opciones de cámara.
+    - Cambios en la luz según la cámara.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pac-Man</title>
+
+    <link rel="stylesheet" href="styles.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/104/three.js"></script>
+    <script src="pacMan.js" type="module" defer></script>
+</head>
+
+<body>
+    <div id="scoreboard">
+        <div id="lives">Vidas: <span id="livesCount">3</span></div>
+        <div id="score">Puntuación:<span id="scoreCount">0</span></div>
+    </div>
+
+    <div id="cameraMenu">
+        <input type="radio" name="camera" value="fixed" checked> Luz Fija
+        <input type="radio" name="camera" value="perspective"> Luz "Move While PacMan"
+        <input type="radio" name="camera" value="follow"> Cámara "Soy Pac-Man"
+    </div>
+
+    <div id="messageBox" class="message-box"></div>
+
+    <button id="restartBtn" class="restartGame">Volver a Jugar</button>
+</body>
+</html>

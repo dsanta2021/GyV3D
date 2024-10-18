@@ -19,43 +19,30 @@
 <script id="vertexShader" type="x-shader/x-vertex">
     attribute vec4 a_Position;
     uniform mat4 u_Matrix;
+
+    // Degradado Color
+    attribute vec4 a_Color;
+    varying highp vec4 v_Color;
+
     void main() {
         gl_Position = u_Matrix * a_Position;
+        v_Color = a_Color;
     }
     </script>
 
 <script id="fragmentShader" type="x-shader/x-fragment">
     precision mediump float;
     uniform vec4 u_FragColor;
+
+    varying highp vec4 v_Color;
+
     void main() {
-        gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
+        gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0); //v_Color
     }
 </script>
 
 <script>
-    var initPoints = [
-        0.0, 0.5, 0.0,  // Tejado Top
-        -0.7, 0.0, 0.0, // Tejado Left
-        0.7, 0.0, 0.0,   // Tejado Right
-
-        -0.2, 0.0, 0.0,  // Columna Left 1 Top
-        -0.5, -0.7, 0.0,   // Columna Left 1 BottomLeft
-        -0.2, -0.7, 0.0,  // Columna Left 1 BottomRight
-
-        -0.5, 0.0, 0.0,  // Columna Left 2 TopLeft
-        -0.2, 0.0, 0.0,   // Columna Left 2 TopRight
-        -0.5, -0.7, 0.0,  // Columna Left 2 Bottom
-
-        0.5, 0.0, 0.0,   // Columna Right 1 Top
-        0.2, -0.7, 0.0,   // Columna Right 1 BottomLeft
-        0.5, -0.7, 0.0,  // Columna Right 1 BottomRight
-
-        0.2, 0.0, 0.0,  // Columna Right 2 TopLeft
-        0.5, 0.0, 0.0,   // Columna Right 2 TopRight
-        0.2, -0.7, 0.0  // Columna Right 2 Bottom
-    ]
-
-    var rad_ang = new function() {
+    var rad_ang = new function () {
         this.x = 0.0;
         this.y = 0.0;
         this.scale = 1.0;
@@ -93,7 +80,7 @@
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         // Draw triangles
-        drawTriangle(gl, initPoints);
+        drawTriangle(gl);
         drawScene(gl, rad_ang, 0.0);
 
         // Register event handler
@@ -102,64 +89,124 @@
             switch (ev.key) {
                 case "ArrowLeft": // Left
                     rad_ang.x -= step;
-                    drawScene(gl, rad_ang, step);
+                    drawScene(gl, rad_ang);
                     break;
                 case "ArrowRight": // Right
                     rad_ang.x += step;
-                    drawScene(gl, rad_ang, step);
+                    drawScene(gl, rad_ang);
                     break;
                 case "ArrowUp": // Up
                     rad_ang.y += step;
-                    drawScene(gl, rad_ang, step);
+                    drawScene(gl, rad_ang);
                     break;
                 case "ArrowDown": // Down
                     rad_ang.y -= step;
-                    drawScene(gl, rad_ang, step);
+                    drawScene(gl, rad_ang);
                     break;
                 case "PageUp": // PageUp
                     rad_ang.scale += step;
-                    drawScene(gl, rad_ang, step);
+                    drawScene(gl, rad_ang);
                     break;
                 case "PageDown": // PageDown
                     rad_ang.scale -= step;
-                    drawScene(gl, rad_ang, step);
+                    drawScene(gl, rad_ang);
                     break;
                 case "w": // w
                     rad_ang.roofY += step;
-                    drawScene(gl, rad_ang, step);
+                    drawScene(gl, rad_ang);
                     break
                 case "a": // a
                     rad_ang.roofX -= step;
-                    drawScene(gl, rad_ang, step);
+                    drawScene(gl, rad_ang);
                     break;
                 case "s": // s
                     rad_ang.roofY -= step;
-                    drawScene(gl, rad_ang, step);
+                    drawScene(gl, rad_ang);
                     break;
                 case "d": // d
                     rad_ang.roofX += step;
-                    drawScene(gl, rad_ang, step);
+                    drawScene(gl, rad_ang);
                     break;
                 case "z": // z
                     rad_ang.roofRotation += step;
-                    drawScene(gl, rad_ang, step);
+                    drawScene(gl, rad_ang);
                     break
                 case "x": // x
                     rad_ang.columLRotation -= step;
-                    drawScene(gl, rad_ang, step);
+                    drawScene(gl, rad_ang);
                     break
                 case "c": // c
                     rad_ang.columRRotation += step;
-                    drawScene(gl, rad_ang, step);
+                    drawScene(gl, rad_ang);
                     break
             }
         };
     }
 
-    function drawTriangle(gl, cordinate) {
+    function drawTriangle(gl) {
         // Vertices
         var dim = 3;
-        var vert = new Float32Array(cordinate);
+        var vert = [
+            0.0, 0.5, 0.0,  // Tejado Top
+            -0.7, 0.0, 0.0, // Tejado Left
+            0.7, 0.0, 0.0,   // Tejado Right
+
+            -0.2, 0.0, 0.0,  // Columna Left 1 Top
+            -0.5, -0.7, 0.0,   // Columna Left 1 BottomLeft
+            -0.2, -0.7, 0.0,  // Columna Left 1 BottomRight
+
+            -0.5, 0.0, 0.0,  // Columna Left 2 TopLeft
+            -0.2, 0.0, 0.0,   // Columna Left 2 TopRight
+            -0.5, -0.7, 0.0,  // Columna Left 2 Bottom
+
+            0.5, 0.0, 0.0,   // Columna Right 1 Top
+            0.2, -0.7, 0.0,   // Columna Right 1 BottomLeft
+            0.5, -0.7, 0.0,  // Columna Right 1 BottomRight
+
+            0.2, 0.0, 0.0,  // Columna Right 2 TopLeft
+            0.5, 0.0, 0.0,   // Columna Right 2 TopRight
+            0.2, -0.7, 0.0  // Columna Right 2 Bottom
+        ];
+
+        // Colores
+        var colors = new Float32Array([
+            1.0, 1.0, 0.0, // Amarillo tejado
+            1.0, 1.0, 0.0, // Amarillo tejado
+            1.0, 1.0, 0.0, // Amarillo tejado
+
+            // Degrado Izquierda
+            1.0, 0.0, 0.0, // red
+            0.0, 1.0, 0.0, // green
+            0.0, 0.0, 1.0, // blue
+
+            1.0, 1.0, 0.0, // yellow
+            1.0, 0.0, 1.0, // purple
+            0.0, 1.0, 1.0, // cian
+
+
+            // Degrado Derecha
+            1.0, 0.0, 0.0, // red
+            0.0, 1.0, 0.0, // green
+            0.0, 0.0, 1.0, // blue
+
+            1.0, 1.0, 0.0, // yellow
+            1.0, 0.0, 1.0, // purple
+            0.0, 1.0, 1.0, // cian
+        ]);
+
+        // Para hacer los cuadrados enteros y no por triangulos
+        var indexs = new Uint16Array([
+            // Tejado
+            0, 1, 2,
+
+            // Columna Izquierda 
+            3, 4, 5,
+            3, 4, 6,
+
+            // Columna Derecha 
+            9, 10, 11,
+            9, 10, 12
+        ]);
 
         // Create a buffer object
         var vertexBuffer = gl.createBuffer();
@@ -168,7 +215,7 @@
             return -1;
         }
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, vert, gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vert), gl.STATIC_DRAW);
 
         // Assign the vertices in buffer object to a_Position variable
         var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
@@ -178,9 +225,21 @@
         }
         gl.vertexAttribPointer(a_Position, dim, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(a_Position);
+
+        // Create a colors buffer 
+        /*gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+        gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+        var a_Color = gl.getAttribLocation(gl.program, 'a_Color');
+        gl.enableVertexAttribArray(a_Color);
+        gl.vertexAttribPointer(a_Color, dim, gl.FLOAT, false, 0, 0);*/
+
+        // Con índices 
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indexs, gl.STATIC_DRAW);
+
     }
 
-    function drawScene(gl, rad_ang, step) {
+    function drawScene(gl, rad_ang) {
         // Clear canvas
         gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -206,7 +265,8 @@
         // Set uniform value (u_Matrix) in vertex shader
         var mvMatrixUniform = gl.getUniformLocation(gl.program, "u_Matrix");
         gl.uniformMatrix4fv(mvMatrixUniform, false, roof_and_general);
-        gl.drawArrays(gl.TRIANGLES, 0, 3);  // Los correspondientes al tejado
+        //gl.drawArrays(gl.TRIANGLES, 0, 3);  // Los correspondientes al tejado
+        gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 0);
 
         // Left Colum Matrix
         var rotate_Lcolum = rad_ang.columLRotation;
@@ -215,7 +275,8 @@
         // Set uniform value (u_Matrix) in vertex shader
         var mvMatrixUniform = gl.getUniformLocation(gl.program, "u_Matrix");
         gl.uniformMatrix4fv(mvMatrixUniform, false, LColum_and_general);
-        gl.drawArrays(gl.TRIANGLES, 3, 6);  // Los correspondientes a la columna izq
+        //gl.drawArrays(gl.TRIANGLES, 3, 6);  // Los correspondientes a la columna izq
+        gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 3 * Uint16Array.BYTES_PER_ELEMENT);
 
         // Right Colum Matrix
         var rotate_Rcolum = rad_ang.columRRotation;
@@ -224,11 +285,12 @@
         // Set uniform value (u_Matrix) in vertex shader
         var mvMatrixUniform = gl.getUniformLocation(gl.program, "u_Matrix");
         gl.uniformMatrix4fv(mvMatrixUniform, false, RColum_and_general);
-        gl.drawArrays(gl.TRIANGLES, 9, 6);  // Los correspondientes a la columna derecha
-        
+        //gl.drawArrays(gl.TRIANGLES, 9, 6);  // Los correspondientes a la columna derecha
+        gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 9 * Uint16Array.BYTES_PER_ELEMENT);
+
         // Call translateScene again in the next browser repaint
         requestAnimationFrame(function () {
-            drawScene(gl, rad_ang, step)
+            drawScene(gl, rad_ang)
         });
     }
 

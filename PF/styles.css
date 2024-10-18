@@ -1,0 +1,69 @@
+#lives {
+    font-size: 24px;
+    display: inline-block;
+    margin-right: 20px;
+    font-family: Arial, sans-serif;
+}
+
+#lives span {
+    font-weight: bold;
+}
+
+#score {
+    font-size: 24px;
+    display: inline-block;
+    font-family: Arial, sans-serif;
+}
+
+#score span {
+    font-weight: bold;
+}
+
+#scoreboard {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+#cameraMenu {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 10px;
+    border-radius: 5px;
+    font-family: Arial, sans-serif;
+}
+
+.message-box {
+    font-family: Arial, sans-serif;
+    font-size: 50px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 0.8);
+    color: rgb(0, 0, 0);
+    padding: 20px;
+    border-radius: 5px;
+    display: none;
+}
+
+#restartBtn {
+    position: absolute;
+    top: 60%;
+    left: 50.5%;
+    transform: translate(-50%, -50%);
+    display: none;
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 26px;
+    background-color: #ffffff;
+    color: rgb(0, 13, 255);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
